@@ -110,6 +110,9 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        hashedKey = self.hash_index(key)
+        self.hash_table[hashedKey] = None
+        return
 
 
     def get(self, key):
