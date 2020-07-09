@@ -22,7 +22,10 @@ class HashTable:
 
     def __init__(self, capacity):
         # Your code here
-
+        if capacity >= MIN_CAPACITY:
+            self.capacity = capacity
+        else: self.capacity = 8
+        self.hash_table = [None] * self.capacity
 
     def get_num_slots(self):
         """
@@ -63,7 +66,15 @@ class HashTable:
         Implement this, and/or FNV-1.
         """
         # Your code here
-
+        # string_bytes = key.encode()
+        # total = 0
+        # for b in string_bytes :
+            # total += b
+        # return total
+        hash = 5381
+        for b in key:
+            hash = (hash * 33 ) + ord(b)
+        return hash
 
     def hash_index(self, key):
         """
@@ -82,6 +93,12 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        h = HashTableEntry(self.djb2(key), value)
+        hashedKey = self.hash_index(key)
+        self.hash_table[hashedKey] = value
+        # Compare linked list entries
+        if(self.hash_table[hashedKey]):
+            h.next = self.hash_table[hashedKey]
 
 
     def delete(self, key):
@@ -104,6 +121,8 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        hashedKey = self.hash_index(key)
+        return self.hash_table[hashedKey]
 
 
     def resize(self, new_capacity):
@@ -114,6 +133,14 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        # self.capacity = new_capacity
+        # i=0
+        # newTable=[None] * new_capacity
+        # for h in self.hash_table:
+            # newTable[i] = ht.put(i, h)
+            # i+=1
+        # hash_table = newTable
+            
 
 
 
@@ -147,7 +174,7 @@ if __name__ == "__main__":
     print(f"\nResized from {old_capacity} to {new_capacity}.\n")
 
     # Test if data intact after resizing
-    for i in range(1, 13):
-        print(ht.get(f"line_{i}"))
+    # for i in range(1, 13):
+        # print(ht.get(f"line_{i}"))
 
-    print("")
+    # print("")
