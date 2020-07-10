@@ -1,3 +1,65 @@
+class LinkedList:
+    def __init__(self):
+        self.head = None
+
+    def find(self, key):
+        current = self.head
+        while current is not None:
+            if current.key == key:
+                return current.value
+            current = current.next
+        return None
+
+    def findKey(self):
+        current = self.head
+        if current is not None:
+            return current.key
+        return None
+
+    def insert(self, key, value):
+        node = HashTableEntry(key, value)
+        if self.head is None:
+            self.head = node
+            return self.head
+        else:
+            current = self.head
+            while current.next is not None:
+                current = current.next
+            current.next = node
+            return  current.next
+    
+    def overwrite(self, key, value):
+        current = self.head
+        if current.key == key:
+            current.value = value
+            return
+        while current.next is not None:
+            if current.next.key == key:
+                current.next.value = value
+                return
+            current = current.next
+        return None
+
+    def delete(self, key):
+        current = self.head
+        if current.key == key:
+            if current.next is not None:
+                self.head = current.next  
+            else:
+                self.head = None
+        else:
+            while current.next is not None:
+                if current.next.key == key:
+                    if current.next.next is not None:
+                        current.next = current.next.next
+                        return
+                    else:
+                        current.next = None
+                        return
+                current = current.next
+        return None
+        
+
 class HashTableEntry:
     """
     Linked List hash table key/value pair
@@ -26,6 +88,7 @@ class HashTable:
             self.capacity = capacity
         else: self.capacity = 8
         self.hash_table = [None] * self.capacity
+        self.counter = 0
 
     def get_num_slots(self):
         """
@@ -38,6 +101,7 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        return len(self.hash_table)
 
 
     def get_load_factor(self):
@@ -47,6 +111,7 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        return self.counter/self.capacity
 
 
     def fnv1(self, key):
@@ -93,14 +158,28 @@ class HashTable:
         Implement this.
         """
         # Your code here
-        h = HashTableEntry(self.djb2(key), value)
+        # Add a counter for tracking resizing, but don't add to the count if overwriting a key
+        # Check load factor, if great than 0.7, refactor and double the capacity.
+        
+        h = HashTableEntry(key, value)
+        # ll = LinkedList() initiated down below after classes
         hashedKey = self.hash_index(key)
-        self.hash_table[hashedKey] = value
-        # Compare linked list entries
-        if(self.hash_table[hashedKey]):
-            h.next = self.hash_table[hashedKey]
-
-
+        if self.hash_table[hashedKey] is not None:
+            #  ll already exists at that index, add to it
+            if self.hash_table[hashedKey].find(key) is not None:
+                self.hash_table[hashedKey].overwrite(key, value)
+            else:
+                self.hash_table[hashedKey].insert(key, value)
+                self.counter += 1
+        else:
+            # ll doesn't exist, create one at this index, insert your item as the head
+            self.hash_table[hashedKey] = LinkedList()
+            self.hash_table[hashedKey].insert(key, value)
+            self.counter += 1
+        if self.get_load_factor() > 0.7:
+            # print(self.get_load_factor())
+            self.resize(self.capacity*2)
+            
     def delete(self, key):
         """
         Remove the value stored with the given key.
@@ -110,8 +189,16 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        # Stretch goal: 
+        # Use the counter for tracking resizing, decrement when deleting
+        # Check load factor, if less than 0.2, rehash to half the size with atleast the minimum capacity
+
         hashedKey = self.hash_index(key)
-        self.hash_table[hashedKey] = None
+        if self.hash_table[hashedKey].find(key): 
+            self.counter -=1
+            self.hash_table[hashedKey].delete(key)  
+        # if self.get_load_factor() < 0.2:
+            # self.resize(self.capacity/2)
         return
 
 
@@ -125,7 +212,7 @@ class HashTable:
         """
         # Your code here
         hashedKey = self.hash_index(key)
-        return self.hash_table[hashedKey]
+        return self.hash_table[hashedKey].find(key)
 
 
     def resize(self, new_capacity):
@@ -136,13 +223,21 @@ class HashTable:
         Implement this.
         """
         # Your code here
-        # self.capacity = new_capacity
-        # i=0
-        # newTable=[None] * new_capacity
-        # for h in self.hash_table:
-            # newTable[i] = ht.put(i, h)
-            # i+=1
-        # hash_table = newTable
+        self.capacity = new_capacity
+        newTable=[None] * new_capacity
+        for h in self.hash_table:
+            while h is not None and h.findKey() is not None:
+                key = h.findKey()
+                value = h.find(h.findKey())
+                rehashedKey = self.hash_index(key)
+                h.delete(key)
+                if newTable[rehashedKey] is not None:
+                    newTable[rehashedKey].insert(key, value)
+                else:
+                    newTable[rehashedKey] = LinkedList()
+                    newTable[rehashedKey].insert(key, value)
+        self.hash_table = newTable
+        return
             
 
 
@@ -177,7 +272,7 @@ if __name__ == "__main__":
     print(f"\nResized from {old_capacity} to {new_capacity}.\n")
 
     # Test if data intact after resizing
-    # for i in range(1, 13):
-        # print(ht.get(f"line_{i}"))
+    for i in range(1, 13):
+        print(ht.get(f"line_{i}"))
 
-    # print("")
+    print("")
