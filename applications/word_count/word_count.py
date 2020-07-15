@@ -1,5 +1,27 @@
 def word_count(s):
     # Your code here
+    temp = ''
+    cache = {}
+    i=0 
+    for r in s:
+        if r.isspace() or r == '':
+            if len(temp):
+                if temp in cache:
+                    cache[temp] += 1
+                else:
+                    cache[temp] = 1
+                temp = ''
+        # Statement to ignor special symbols
+        elif r not in ['"',':',';',',','.','-','+','=','/','\\','|','[',']','{','}','(',')','*','^','&']:
+            temp += r.lower()
+        i+=1
+        if i == len(s):
+            if len(temp):
+                if temp in cache:
+                    cache[temp] += 1
+                else:
+                    cache[temp] = 1
+    return cache
 
 
 
